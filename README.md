@@ -1,12 +1,10 @@
 # CameraView
 
-*This is a preview release. The API is subject to change.*
+*基于Google官方API，并进行相关维护。*
 
-This is not an official Google product.
+CameraView旨在帮助Android开发者便于集成相机功能。
 
-CameraView aims to help Android developers easily integrate Camera features.
-
-Requires API Level 9. The library uses Camera 1 API on API Level 9-20 and Camera2 on 21 and above.
+支持API 9及以上版本。该库在API 9-20版本使用Camera 1 API，在21及以上版本使用Camera2 API。
 
 | API Level | Camera API | Preview View |
 |:---------:|------------|--------------|
@@ -15,15 +13,15 @@ Requires API Level 9. The library uses Camera 1 API on API Level 9-20 and Camera
 | 21-23     | Camera2    | TextureView  |
 | 24        | Camera2    | SurfaceView  |
 
-## Features
+## 特性
 
-- Camera preview by placing it in a layout XML (and calling the start method)
-- Configuration by attributes
-  - Aspect ratio (app:aspectRatio)
-  - Auto-focus (app:autoFocus)
-  - Flash (app:flash)
+- 可以将相机预览界面置入到一个布局XML文件中（需调用start方法）
+- 属性配置
+  - 纵横比 (app:aspectRatio)
+  - 是否自动对焦 (app:autoFocus)
+  - 闪光灯 (app:flash)
 
-## Usage
+## 用法
 
 ```xml
 <com.google.android.cameraview.CameraView
@@ -52,8 +50,8 @@ Requires API Level 9. The library uses Camera 1 API on API Level 9-20 and Camera
     }
 ```
 
-You can see a complete usage in the demo app.
+在示例app中可以看到完整的使用代码。
 
-## Contribution
+## 贡献
 
-See [CONTRIBUTING.md](/CONTRIBUTING.md).
+详见 [CONTRIBUTING.md](/CONTRIBUTING.md).
