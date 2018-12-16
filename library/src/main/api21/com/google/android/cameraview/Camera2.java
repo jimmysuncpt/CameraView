@@ -37,6 +37,7 @@ import android.view.Surface;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -426,9 +427,11 @@ class Camera2 extends CameraViewImpl {
         }
         mPictureSizes.clear();
         collectPictureSizes(mPictureSizes, map);
-        for (AspectRatio ratio : mPreviewSizes.ratios()) {
+        Iterator<AspectRatio> iterator = mPreviewSizes.ratios().iterator();
+        while (iterator.hasNext()) {
+            AspectRatio ratio = iterator.next();
             if (!mPictureSizes.ratios().contains(ratio)) {
-                mPreviewSizes.remove(ratio);
+                iterator.remove();
             }
         }
 
