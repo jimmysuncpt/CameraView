@@ -20,6 +20,10 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,6 +44,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.cameraview.AspectRatio;
@@ -88,32 +93,55 @@ public class MainActivity extends AppCompatActivity implements
 
     private CameraView mCameraView;
 
+    private ImageView mPreviewImageView;
+
     private Handler mBackgroundHandler;
 
-    private View.OnClickListener mOnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.take_picture:
-                    if (mCameraView != null) {
-                        mCameraView.takePicture();
-                    }
-                    break;
-            }
-        }
-    };
+    private boolean mMenuVisible = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCameraView = (CameraView) findViewById(R.id.camera);
+        mPreviewImageView = (ImageView) findViewById(R.id.preview);
         if (mCameraView != null) {
             mCameraView.addCallback(mCallback);
         }
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.take_picture);
-        if (fab != null) {
-            fab.setOnClickListener(mOnClickListener);
+        final FloatingActionButton takePicture = (FloatingActionButton) findViewById(R.id
+                .take_picture);
+        final FloatingActionButton reset = (FloatingActionButton) findViewById(R.id.reset);
+        if (takePicture != null) {
+            takePicture.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mCameraView != null) {
+                        mCameraView.takePicture();
+                    }
+                    takePicture.setVisibility(View.GONE);
+                    if (reset != null) {
+                        reset.setVisibility(View.VISIBLE);
+                    }
+                    mMenuVisible = false;
+                    invalidateOptionsMenu();
+                }
+            });
+        }
+        if (reset != null) {
+            reset.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCameraView.start();
+                    mPreviewImageView.setVisibility(View.GONE);
+                    mCameraView.setVisibility(View.VISIBLE);
+                    mMenuVisible = true;
+                    invalidateOptionsMenu();
+                    reset.setVisibility(View.GONE);
+                    if (takePicture != null) {
+                        takePicture.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
         }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -164,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION:
                 if (permissions.length != 1 || grantResults.length != 1) {
@@ -182,6 +210,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        for (int i = 0; i < menu.size(); i++) {
+            menu.getItem(i).setVisible(mMenuVisible);
+        }
         return true;
     }
 
@@ -248,10 +279,24 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         @Override
-        public void onPictureTaken(CameraView cameraView, final byte[] data) {
+        public void onPictureTaken(final CameraView cameraView, final byte[] data) {
             Log.d(TAG, "onPictureTaken " + data.length);
             Toast.makeText(cameraView.getContext(), R.string.picture_taken, Toast.LENGTH_SHORT)
                     .show();
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+            if (MainActivity.this.getResources().getConfiguration().orientation == Configuration
+                    .ORIENTATION_PORTRAIT && bitmap.getWidth() > bitmap.getHeight()) {
+                Bitmap origin = bitmap;
+                Matrix matrix = new Matrix();
+                matrix.postRotate(cameraView.getFacing() == CameraView.FACING_FRONT ? -90 : 90);
+                bitmap = Bitmap.createBitmap(origin, 0, 0, origin.getWidth(), origin.getHeight(),
+                        matrix, true);
+                origin.recycle();
+            }
+            mPreviewImageView.setImageBitmap(bitmap);
+            mCameraView.setVisibility(View.GONE);
+            mPreviewImageView.setVisibility(View.VISIBLE);
+            mCameraView.stop();
             getBackgroundHandler().post(new Runnable() {
                 @Override
                 public void run() {
@@ -287,7 +332,9 @@ public class MainActivity extends AppCompatActivity implements
         private static final String ARG_NOT_GRANTED_MESSAGE = "not_granted_message";
 
         public static ConfirmationDialogFragment newInstance(@StringRes int message,
-                String[] permissions, int requestCode, @StringRes int notGrantedMessage) {
+                                                             String[] permissions, int
+                                                                     requestCode, @StringRes int
+                                                                     notGrantedMessage) {
             ConfirmationDialogFragment fragment = new ConfirmationDialogFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_MESSAGE, message);
