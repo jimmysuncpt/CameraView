@@ -20,7 +20,6 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -131,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements
             reset.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mCameraView.start();
                     mPreviewImageView.setVisibility(View.GONE);
                     mCameraView.setVisibility(View.VISIBLE);
                     mMenuVisible = true;
@@ -284,11 +282,11 @@ public class MainActivity extends AppCompatActivity implements
             Toast.makeText(cameraView.getContext(), R.string.picture_taken, Toast.LENGTH_SHORT)
                     .show();
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            if (MainActivity.this.getResources().getConfiguration().orientation == Configuration
-                    .ORIENTATION_PORTRAIT && bitmap.getWidth() > bitmap.getHeight()) {
+            int degrees = Exif.getOrientation(data);
+            if (degrees != 0) {
                 Bitmap origin = bitmap;
                 Matrix matrix = new Matrix();
-                matrix.postRotate(cameraView.getFacing() == CameraView.FACING_FRONT ? -90 : 90);
+                matrix.postRotate(degrees);
                 bitmap = Bitmap.createBitmap(origin, 0, 0, origin.getWidth(), origin.getHeight(),
                         matrix, true);
                 origin.recycle();
@@ -296,7 +294,6 @@ public class MainActivity extends AppCompatActivity implements
             mPreviewImageView.setImageBitmap(bitmap);
             mCameraView.setVisibility(View.GONE);
             mPreviewImageView.setVisibility(View.VISIBLE);
-            mCameraView.stop();
             getBackgroundHandler().post(new Runnable() {
                 @Override
                 public void run() {
