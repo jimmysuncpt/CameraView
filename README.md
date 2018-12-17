@@ -10,8 +10,7 @@ CameraView旨在帮助Android开发者便于集成相机功能。
 |:---------:|------------|--------------|
 | 9-13      | Camera1    | SurfaceView  |
 | 14-20     | Camera1    | TextureView  |
-| 21-23     | Camera2    | TextureView  |
-| 24        | Camera2    | SurfaceView  |
+| 21        | Camera2    | TextureView  |
 
 ## 特性
 
